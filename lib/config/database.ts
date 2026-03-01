@@ -9,8 +9,15 @@ if (!admin.apps.length) {
 
         if (serviceAccountKey) {
             try {
-                // Handle potentially escaped newlines in env var string
-                const parsedKey = serviceAccountKey.replace(/\\n/g, '\n');
+                // If it's a stringified JSON string inside quotes, we need to handle it carefully
+                let parsedKey = serviceAccountKey;
+                if (parsedKey.startsWith("'") && parsedKey.endsWith("'")) {
+                    parsedKey = parsedKey.slice(1, -1);
+                }
+
+                // Handle unescaped newlines which cause JSON.parse to crash
+                parsedKey = parsedKey.replace(/\\n/g, '\\n');
+
                 const serviceAccount = JSON.parse(parsedKey);
                 credential = admin.credential.cert(serviceAccount);
             } catch (e) {
