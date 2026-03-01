@@ -29,14 +29,6 @@ export const logger = winston.createLogger({
                 )
             ),
         }),
-        // Write all logs to file
-        new winston.transports.File({
-            filename: 'logs/error.log',
-            level: 'error',
-        }),
-        new winston.transports.File({
-            filename: 'logs/combined.log',
-        }),
     ],
 })
 
