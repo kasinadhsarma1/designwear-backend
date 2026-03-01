@@ -1,32 +1,15 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { db } from '@/lib/config/database';
+import * as admin from 'firebase-admin';
 
 export async function POST(req: NextRequest) {
     try {
-        const apiKey = process.env.FIREBASE_API_KEY;
-        if (!apiKey) {
-            throw new Error("Missing FIREBASE_API_KEY in backend configuration. Cannot provision guest.");
-        }
+        // 1. Create completely anonymous account securely using the elevated Admin SDK privileges
+        const userRecord = await admin.auth().createUser({});
+        const guestUid = userRecord.uid;
 
-        // 1. Create completely anonymous account using REST API
-        const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                returnSecureToken: true
-            })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            return NextResponse.json({ success: false, error: data.error?.message || 'Failed to generate guest session' }, { status: 500 });
-        }
-
-        // 2. Create basic customer document linking to guest UID (optional but good for orders)
-        const guestUid = data.localId;
+        // 2. Generate a custom session token for the frontend to digest
+        const customToken = await admin.auth().createCustomToken(guestUid);
         await db.collection('customers').doc(guestUid).set({
             firebaseUid: guestUid,
             name: 'Guest User',
@@ -39,8 +22,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({
             success: true,
             data: {
-                token: data.idToken,           // Session token for headers
-                refreshToken: data.refreshToken,
+                token: customToken,           // Session token for headers
                 uid: guestUid,
                 isGuest: true
             }
