@@ -25,7 +25,7 @@ export default function Home() {
                             A
                         </div>
                         <h2 className="text-xl font-bold text-gray-800 mb-2">Node API <span className="text-xs ml-2 bg-green-100 text-green-800 px-2 py-1 rounded-full">Running</span></h2>
-                        <p className="text-gray-500 text-sm leading-relaxed">Firebase integrated backend serving data on <code className="bg-gray-100 rounded px-1">localhost:3001</code></p>
+                        <p className="text-gray-500 text-sm leading-relaxed">Firebase integrated backend serving data on <code className="bg-gray-100 rounded px-1">https://designwear-backend.vishwamai.com/</code></p>
                     </div>
                 </div>
             </div>
