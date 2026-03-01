@@ -4,13 +4,27 @@ import { logger } from '../utils/logger';
 // Prevent duplicate initialization during hot reloads
 if (!admin.apps.length) {
     try {
+        const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+        let credential;
+
+        if (serviceAccountKey) {
+            try {
+                // Handle potentially escaped newlines in env var string
+                const parsedKey = serviceAccountKey.replace(/\\n/g, '\n');
+                const serviceAccount = JSON.parse(parsedKey);
+                credential = admin.credential.cert(serviceAccount);
+            } catch (e) {
+                logger.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY, falling back to applicationDefault()', e);
+                credential = admin.credential.applicationDefault();
+            }
+        } else {
+            credential = admin.credential.applicationDefault();
+        }
+
         admin.initializeApp({
-            credential: admin.credential.applicationDefault(),
-            projectId: process.env.GCP_PROJECT_ID || 'designwear-app-8984'
-            // Important: We rely on the GOOGLE_APPLICATION_CREDENTIALS environment variable
-            // pointing to the service account JSON for local dev.
+            credential,
+            projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || 'designwear-app-8984'
         });
-        logger.info('Firebase Admin initialized successfully');
     } catch (error) {
         logger.error('Failed to initialize Firebase Admin:', error);
         throw error;
