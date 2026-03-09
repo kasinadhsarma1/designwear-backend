@@ -15,8 +15,8 @@ if (!admin.apps.length) {
                     parsedKey = parsedKey.slice(1, -1);
                 }
 
-                // Handle unescaped newlines which cause JSON.parse to crash
-                parsedKey = parsedKey.replace(/\\n/g, '\\n');
+                // Handle unescaped newlines which cause JSON.parse to crash or PEM parsing to fail
+                parsedKey = parsedKey.replace(/\\\\n/g, '\\n');
 
                 const serviceAccount = JSON.parse(parsedKey);
                 credential = admin.credential.cert(serviceAccount);

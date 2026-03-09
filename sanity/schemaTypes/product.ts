@@ -1,4 +1,5 @@
 import { defineType, defineField } from 'sanity'
+import { PriceWithTaxInput } from '../components/PriceWithTaxInput'
 
 export default defineType({
     name: 'product',
@@ -36,9 +37,25 @@ export default defineType({
         }),
         defineField({
             name: 'price',
-            title: 'Price',
+            title: 'Base Price',
             type: 'number',
             validation: (Rule) => Rule.required().min(0),
+        }),
+        defineField({
+            name: 'taxRate',
+            title: 'Tax Rate (%)',
+            description: 'Set custom tax rate (default is 18%).',
+            type: 'number',
+            validation: (Rule) => Rule.min(0).max(100),
+            initialValue: 18,
+        }),
+        defineField({
+            name: 'priceWithTax',
+            title: 'Final Price (Computed)',
+            type: 'number',
+            components: {
+                input: PriceWithTaxInput,
+            },
         }),
         defineField({
             name: 'compareAtPrice',

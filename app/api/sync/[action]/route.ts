@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { syncProductToDatabase } from '@/lib/services/syncService';
+import { syncProductToDatabase, checkDocumentExists } from '@/lib/services/syncService';
 import { db } from '@/lib/config/database';
+import { logger } from '@/lib/utils/logger';
 
 export async function GET(req: NextRequest) {
     try {
@@ -10,13 +11,11 @@ export async function GET(req: NextRequest) {
         if (action === 'status') {
             const pendingQuery = await db.collection('products')
                 .where('syncedToDb', 'in', [false, null])
-                .count()
                 .get();
 
             const failedQuery = await db.collection('operationLogs')
                 .where('operationType', '==', 'sync')
                 .where('error', '!=', null)
-                .count()
                 .get();
 
             const snapshot = await db.collection('products')
@@ -29,8 +28,8 @@ export async function GET(req: NextRequest) {
 
             return NextResponse.json({
                 status: 'idle',
-                pendingItems: pendingQuery.data().count,
-                failedItems: failedQuery.data().count,
+                pendingItems: pendingQuery.size,
+                failedItems: failedQuery.size,
                 lastSync
             });
         }
@@ -51,8 +50,23 @@ export async function POST(req: NextRequest) {
             const { documentId, documentType } = await req.json();
 
             if (documentType === 'product') {
-                await syncProductToDatabase(documentId);
-                return NextResponse.json({ message: 'Sync triggered successfully', documentId });
+                // Check if document exists before attempting sync
+                const exists = await checkDocumentExists(documentId);
+                if (!exists) {
+                    logger.warn(`Skipping sync for non-existent product: ${documentId}`);
+                    return NextResponse.json(
+                        { 
+                            success: false,
+                            message: `Product ${documentId} not found in Sanity`,
+                            documentId 
+                        },
+                        { status: 404 }
+                    );
+                }
+
+                const result = await syncProductToDatabase(documentId);
+                const statusCode = result.success ? 200 : 400;
+                return NextResponse.json(result, { status: statusCode });
             } else {
                 return NextResponse.json({ error: 'Unsupported document type' }, { status: 400 });
             }
@@ -62,16 +76,37 @@ export async function POST(req: NextRequest) {
             const { _type, _id } = await req.json();
 
             if (_type === 'product') {
-                await syncProductToDatabase(_id);
+                // Check if document exists before attempting sync
+                const exists = await checkDocumentExists(_id);
+                if (!exists) {
+                    logger.warn(`Skipping webhook sync for non-existent product: ${_id}`);
+                    return NextResponse.json(
+                        { 
+                            success: false, 
+                            message: `Product ${_id} not found in Sanity`,
+                            documentId: _id 
+                        }
+                    );
+                }
+
+                const result = await syncProductToDatabase(_id);
+                return NextResponse.json({ 
+                    success: result.success, 
+                    documentId: _id,
+                    message: result.message 
+                });
             }
 
-            return NextResponse.json({ success: true, documentId: _id });
+            return NextResponse.json({ success: true, message: 'Webhook received but no action needed' });
         }
 
         return NextResponse.json({ error: 'Endpoint not found' }, { status: 404 });
 
     } catch (error: any) {
-        console.error('Sync POST error', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        logger.error('Sync POST error', error);
+        return NextResponse.json({ 
+            error: error.message || 'Internal server error',
+            success: false
+        }, { status: 500 });
     }
 }

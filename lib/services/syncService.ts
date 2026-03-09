@@ -10,7 +10,22 @@ const client = createClient({
     useCdn: false,
 });
 
-export async function syncProductToDatabase(sanityDocumentId: string): Promise<void> {
+interface SyncResult {
+    success: boolean;
+    message: string;
+}
+
+export async function checkDocumentExists(sanityDocumentId: string): Promise<boolean> {
+    try {
+        const count = await client.fetch(`count(*[_id == $id])`, { id: sanityDocumentId });
+        return count > 0;
+    } catch (error) {
+        logger.error(`Error checking document existence for ${sanityDocumentId}:`, error);
+        return false;
+    }
+}
+
+export async function syncProductToDatabase(sanityDocumentId: string): Promise<SyncResult> {
     try {
         const product = await client.fetch(
             `*[_type == "product" && _id == $id][0]{
@@ -65,10 +80,11 @@ export async function syncProductToDatabase(sanityDocumentId: string): Promise<v
         logger.info(`Upserted product ${sanityDocumentId} into Firestore db`);
 
         await logOperation('sync', 'product', sanityDocumentId, null);
+        return { success: true, message: `Product ${sanityDocumentId} synced successfully` };
     } catch (error: any) {
         logger.error(`Failed to sync product ${sanityDocumentId}:`, error);
         await logOperation('sync', 'product', sanityDocumentId, error);
-        throw error;
+        return { success: false, message: error.message || `Failed to sync product ${sanityDocumentId}` };
     }
 }
 
