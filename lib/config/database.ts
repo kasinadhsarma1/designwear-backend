@@ -9,22 +9,39 @@ if (!admin.apps.length) {
 
         if (serviceAccountKey) {
             try {
-                // If it's a stringified JSON string inside quotes, we need to handle it carefully
-                let parsedKey = serviceAccountKey;
+                let parsedKey = serviceAccountKey.trim();
+
+                // Strip outer single-quotes if present (added in local .env.local for shell safety)
                 if (parsedKey.startsWith("'") && parsedKey.endsWith("'")) {
                     parsedKey = parsedKey.slice(1, -1);
                 }
+                // Strip outer double-quotes if Vercel wrapped the value
+                if (parsedKey.startsWith('"') && parsedKey.endsWith('"')) {
+                    parsedKey = parsedKey.slice(1, -1);
+                }
 
-                // Handle unescaped newlines which cause JSON.parse to crash or PEM parsing to fail
-                parsedKey = parsedKey.replace(/\\\\n/g, '\\n');
+                // Normalize newlines in the private_key field.
+                // Vercel may store \\n (double-escaped) or the literal chars \n.
+                // We need actual newlines for the PEM to parse correctly.
+                parsedKey = parsedKey
+                    .replace(/\\\\n/g, '\n')   // \\n → actual newline (from .env.local double escaping)
+                    .replace(/\\n/g, '\n');     // \n  → actual newline (from Vercel single escaping)
 
                 const serviceAccount = JSON.parse(parsedKey);
+
+                // Vercel sometimes also stores private_key with literal \n — fix it
+                if (serviceAccount.private_key && !serviceAccount.private_key.includes('\n')) {
+                    serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+                }
+
                 credential = admin.credential.cert(serviceAccount);
+                logger.info('Firebase Admin initialized successfully');
             } catch (e) {
-                logger.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY, falling back to applicationDefault()', e);
+                logger.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY — check Vercel env var format', e);
                 credential = admin.credential.applicationDefault();
             }
         } else {
+            logger.warn('FIREBASE_SERVICE_ACCOUNT_KEY not set — using applicationDefault()');
             credential = admin.credential.applicationDefault();
         }
 
