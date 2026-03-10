@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { db } from '@/lib/config/database';
 
-// Get products
+// Get products — returns `data` key matching Flutter Product.fromApiMap expectations
 export async function GET(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url);
@@ -17,15 +17,28 @@ export async function GET(req: NextRequest) {
         productsRef = productsRef.orderBy('createdAt', 'desc').limit(Number(limitStr));
 
         const snapshot = await productsRef.get();
-        const products: Record<string, unknown>[] = [];
+        const data: Record<string, unknown>[] = [];
 
         snapshot.forEach((doc) => {
-            products.push({ id: doc.id, ...doc.data() });
+            const d = doc.data();
+            data.push({
+                id: doc.id,
+                // Normalize Firestore fields to match Product.fromApiMap
+                title: d.title || d.name || '',
+                slug: d.slug || '',
+                description: d.description || '',
+                price: d.price || 0,
+                imageUrl: d.imageUrl || (Array.isArray(d.images) && d.images.length > 0 ? d.images[0]?.asset?._ref : null),
+                categoryId: d.categoryId || d.category_id || null,
+                stockStatus: d.stockStatus || (d.stock > 0 ? 'inStock' : 'outOfStock'),
+                // Keep original fields for backwards compatibility
+                ...d,
+            });
         });
 
         return NextResponse.json({
             success: true,
-            products,
+            data,
             total: snapshot.size,
             limit: Number(limitStr)
         }, { status: 200 });
@@ -38,22 +51,29 @@ export async function GET(req: NextRequest) {
 // Create product
 export async function POST(req: NextRequest) {
     try {
-        const { name, sku, price, stock, category_id, description } = await req.json();
+        const { name, title, sku, price, stock, category_id, categoryId, description } = await req.json();
+        const productTitle = title || name;
 
-        if (!name || !price) {
-            return NextResponse.json({ success: false, error: 'Missing req fields' }, { status: 400 });
+        if (!productTitle || !price) {
+            return NextResponse.json({ success: false, error: 'Missing required fields: title/name and price' }, { status: 400 });
         }
 
         const newProductRef = db.collection('products').doc();
 
         const payload = {
-            name,
+            // Normalized fields for Flutter Product.fromApiMap
+            title: productTitle,
+            name: productTitle,
+            slug: (productTitle as string).toLowerCase().replace(/\s+/g, '-'),
             sku: sku || '',
             price: Number(price),
             stock: stock || 0,
-            category_id: category_id || null,
+            categoryId: categoryId || category_id || null,
+            category_id: categoryId || category_id || null,
             description: description || '',
             status: 'active',
+            stockStatus: (stock || 0) > 0 ? 'inStock' : 'outOfStock',
+            syncedToDb: false,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };

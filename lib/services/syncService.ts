@@ -57,6 +57,7 @@ export async function syncProductToDatabase(sanityDocumentId: string): Promise<S
 
         await productRef.set({
             sanityId: sanityDocumentId,
+            // Original Sanity fields
             name: product.name,
             slug: product.slug?.current || '',
             description: product.description || '',
@@ -68,10 +69,17 @@ export async function syncProductToDatabase(sanityDocumentId: string): Promise<S
             status: product.status || 'draft',
             featured: product.featured || false,
             categoryId: product.categoryId || null,
+            category_id: product.categoryId || null,
             supplierId: product.supplierId || null,
             sizes: product.sizes || [],
             colors: product.colors || [],
             images: product.images || [],
+            // Normalized fields for Flutter Product.fromApiMap compatibility
+            title: product.name,
+            imageUrl: Array.isArray(product.images) && product.images.length > 0
+                ? product.images[0]?.asset?._ref || null
+                : null,
+            stockStatus: (product.stock || 0) > 0 ? 'inStock' : 'outOfStock',
             syncedToDb: true,
             syncedAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
