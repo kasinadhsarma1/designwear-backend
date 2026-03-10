@@ -1,8 +1,8 @@
-import { NextResponse, NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { db } from '@/lib/config/database';
 import * as admin from 'firebase-admin';
 
-export async function POST(req: NextRequest) {
+export async function POST() {
     try {
         // 1. Create completely anonymous account securely using the elevated Admin SDK privileges
         const userRecord = await admin.auth().createUser({});
@@ -27,8 +27,9 @@ export async function POST(req: NextRequest) {
                 isGuest: true
             }
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error in /api/auth/guest:', error);
-        return NextResponse.json({ success: false, error: error.message || 'Guest login failed' }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'Guest login failed';
+        return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
     }
 }

@@ -43,8 +43,9 @@ export async function POST(req: NextRequest) {
                 name: data.displayName
             }
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error in /api/auth/login:', error);
-        return NextResponse.json({ success: false, error: error.message || 'Login failed' }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'Login failed';
+        return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
     }
 }

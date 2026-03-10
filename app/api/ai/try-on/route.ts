@@ -77,8 +77,9 @@ Output: A single high-quality image of the person wearing the clothing item.`
         }
 
         return NextResponse.json({ success: false, error: 'No image returned from Gemini' }, { status: 500 });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error generating AI try-on:', error);
-        return NextResponse.json({ success: false, error: error.message || 'Internal server error' }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+        return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
     }
 }

@@ -15,7 +15,7 @@ export interface Product {
     supplierId?: number
     sizes?: string[]
     colors?: string[]
-    images?: any[]
+    images?: string[]
     syncedToDb: boolean
     syncedAt?: Date
     createdAt: Date
@@ -42,7 +42,7 @@ export interface Order {
     totalAmount: number
     status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
     paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded'
-    shippingAddress?: any
+    shippingAddress?: Record<string, unknown>
     notes?: string
     orderDate: Date
     createdAt: Date
@@ -55,7 +55,7 @@ export interface Customer {
     name: string
     email: string
     phone?: string
-    addresses?: any[]
+    addresses?: Record<string, unknown>[]
     totalOrders: number
     totalSpent: number
     registeredAt: Date

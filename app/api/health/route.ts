@@ -24,7 +24,7 @@ export async function GET() {
             const db = admin.firestore();
             await db.listCollections();
             healthStatus.services.database = 'connected';
-        } catch (dbError: any) {
+        } catch (dbError: unknown) {
             console.error('Health check: Database connection failed', dbError);
             healthStatus.services.database = 'disconnected';
             healthStatus.status = 'degraded';
@@ -33,7 +33,7 @@ export async function GET() {
         const statusCode = healthStatus.status === 'ok' ? 200 : 503;
 
         return NextResponse.json(healthStatus, { status: statusCode });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Health check failed:', error);
         return NextResponse.json({
             status: 'error',

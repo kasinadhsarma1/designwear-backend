@@ -10,13 +10,29 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { systemPrompt, history, userMessage } = body;
+        const { systemPrompt, history, userMessage, imageAttachments } = body;
+
+        // Construct user message parts with text and optional images
+        type UserPart = { text: string } | { inline_data: { mime_type: string; data: string } };
+        const userParts: UserPart[] = [{ text: userMessage }];
+        
+        // Add image attachments if provided
+        if (imageAttachments && Array.isArray(imageAttachments)) {
+            for (const img of imageAttachments) {
+                userParts.push({
+                    inline_data: {
+                        mime_type: img.mimeType || 'image/jpeg',
+                        data: img.data
+                    }
+                });
+            }
+        }
 
         // Construct history exactly as frontend expected
         const fullHistory = history || [];
         fullHistory.push({
             role: 'user',
-            parts: [{ text: userMessage }]
+            parts: userParts
         });
 
         const requestBody = {
@@ -40,7 +56,7 @@ export async function POST(req: NextRequest) {
         }
 
         return NextResponse.json({ success: true, data: data });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error in AI Agent endpoint:', error);
         return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
     }

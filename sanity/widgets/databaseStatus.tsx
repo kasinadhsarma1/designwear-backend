@@ -1,4 +1,3 @@
-import { definePlugin } from 'sanity'
 import { useEffect, useState } from 'react'
 
 interface DatabaseStatus {

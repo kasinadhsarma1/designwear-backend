@@ -48,11 +48,13 @@ function PerformanceMetricsComponent() {
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis
                             dataKey="timestamp"
-                            tickFormatter={(value: any) => new Date(value).toLocaleTimeString()}
+                            tickFormatter={(value: string | number | Date) => new Date(value).toLocaleTimeString()}
                         />
                         <YAxis />
                         <Tooltip
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             labelFormatter={(value: any) => new Date(value).toLocaleString()}
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             formatter={(value: any) => [`${value}ms`, 'Response Time']}
                         />
                         <Line

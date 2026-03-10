@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
             .limit(Number(limitStr))
             .get();
 
-        const logs: any[] = [];
+        const logs: Record<string, unknown>[] = [];
         snapshot.forEach((doc) => {
             const data = doc.data();
             logs.push({
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
         });
 
         return NextResponse.json(logs);
-    } catch (error) {
+    } catch {
         return NextResponse.json([]);
     }
 }

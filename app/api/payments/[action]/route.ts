@@ -12,7 +12,7 @@ async function getFirebaseUid(req: NextRequest): Promise<string | null> {
         const token = authHeader.split('Bearer ')[1];
         const decodedToken = await admin.auth().verifyIdToken(token);
         return decodedToken.uid;
-    } catch (e) {
+    } catch {
         return null;
     }
 }
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
 
         // Webhook receiver
         if (url.pathname.includes('/webhook/gokwik')) {
-            const { order_id, status, signature } = await req.json();
+            const { order_id, status } = await req.json();
 
             if (!order_id || !status) {
                 return NextResponse.json({ success: false, error: 'Invalid payload' }, { status: 400 });

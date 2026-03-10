@@ -41,8 +41,9 @@ export async function POST(req: NextRequest) {
                 name: userRecord.displayName,
             }
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error in /api/auth/register:', error);
-        return NextResponse.json({ success: false, error: error.message || 'Registration failed' }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'Registration failed';
+        return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
     }
 }

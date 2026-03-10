@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function Home() {
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-8">
@@ -12,13 +14,13 @@ export default function Home() {
                 </header>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl">
-                    <a href="/designwear-studio" className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-gray-200 transition-all cursor-pointer group">
+                    <Link href="/designwear-studio" className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-gray-200 transition-all cursor-pointer group">
                         <div className="w-12 h-12 rounded-xl bg-orange-500 mb-6 opacity-90 flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform">
                             S
                         </div>
                         <h2 className="text-xl font-bold text-gray-800 mb-2">Sanity Studio</h2>
                         <p className="text-gray-500 text-sm leading-relaxed">Manage your catalog schemas, inventory items, and CMS assets.</p>
-                    </a>
+                    </Link>
 
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 opacity-60">
                         <div className="w-12 h-12 rounded-xl bg-green-500 mb-6 flex items-center justify-center text-white font-bold text-xl">

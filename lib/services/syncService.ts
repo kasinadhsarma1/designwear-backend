@@ -81,10 +81,11 @@ export async function syncProductToDatabase(sanityDocumentId: string): Promise<S
 
         await logOperation('sync', 'product', sanityDocumentId, null);
         return { success: true, message: `Product ${sanityDocumentId} synced successfully` };
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error(`Failed to sync product ${sanityDocumentId}:`, error);
         await logOperation('sync', 'product', sanityDocumentId, error);
-        return { success: false, message: error.message || `Failed to sync product ${sanityDocumentId}` };
+        const errorMessage = error instanceof Error ? error.message : `Failed to sync product ${sanityDocumentId}`;
+        return { success: false, message: errorMessage };
     }
 }
 
@@ -92,14 +93,14 @@ async function logOperation(
     operationType: string,
     documentType: string,
     documentId: string,
-    error: any
+    error: unknown
 ): Promise<void> {
     try {
         await db.collection('operationLogs').add({
             operationType,
             documentType,
             documentId,
-            error: error ? error.message : null,
+            error: error instanceof Error ? error.message : String(error),
             createdAt: new Date().toISOString()
         });
     } catch (err) {

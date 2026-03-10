@@ -1,7 +1,7 @@
-import { NextResponse, NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { db } from '@/lib/config/database';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
     try {
         const prodSnap = await db.collection('products').get();
         const ordSnap = await db.collection('orders').get();
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
             total_customers: 0, // Using anonymous firebaseUid accounts currently, no unified standard table
             database_size: 0 // Cannot easily compute firestore bucket size from Admin SDK without GCP console
         });
-    } catch (error: any) {
+    } catch {
         return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 });
     }
 }

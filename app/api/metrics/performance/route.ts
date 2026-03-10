@@ -1,6 +1,6 @@
-import { NextResponse, NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
     try {
         // As Firestore doesn't provide granular system response time tables out of the box,
         // we'll return the mock data format expected by the dashboard as done in the fallback
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
                 queries_per_second: 12,
             },
         ]);
-    } catch (error: any) {
+    } catch {
         return NextResponse.json({ error: 'Failed to fetch metrics' }, { status: 500 });
     }
 }

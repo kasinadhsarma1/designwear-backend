@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
         productsRef = productsRef.orderBy('createdAt', 'desc').limit(Number(limitStr));
 
         const snapshot = await productsRef.get();
-        const products: any[] = [];
+        const products: Record<string, unknown>[] = [];
 
         snapshot.forEach((doc) => {
             products.push({ id: doc.id, ...doc.data() });

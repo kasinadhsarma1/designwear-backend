@@ -35,8 +35,8 @@ export async function GET(req: NextRequest) {
         }
 
         return NextResponse.json({ error: 'Endpoint not found' }, { status: 404 });
-    } catch (error: any) {
-        console.error('Status fetch error', error);
+    } catch {
+        console.error('Status fetch error');
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
@@ -55,10 +55,10 @@ export async function POST(req: NextRequest) {
                 if (!exists) {
                     logger.warn(`Skipping sync for non-existent product: ${documentId}`);
                     return NextResponse.json(
-                        { 
+                        {
                             success: false,
                             message: `Product ${documentId} not found in Sanity`,
-                            documentId 
+                            documentId
                         },
                         { status: 404 }
                     );
@@ -81,19 +81,19 @@ export async function POST(req: NextRequest) {
                 if (!exists) {
                     logger.warn(`Skipping webhook sync for non-existent product: ${_id}`);
                     return NextResponse.json(
-                        { 
-                            success: false, 
+                        {
+                            success: false,
                             message: `Product ${_id} not found in Sanity`,
-                            documentId: _id 
+                            documentId: _id
                         }
                     );
                 }
 
                 const result = await syncProductToDatabase(_id);
-                return NextResponse.json({ 
-                    success: result.success, 
+                return NextResponse.json({
+                    success: result.success,
                     documentId: _id,
-                    message: result.message 
+                    message: result.message
                 });
             }
 
@@ -102,10 +102,11 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ error: 'Endpoint not found' }, { status: 404 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error('Sync POST error', error);
-        return NextResponse.json({ 
-            error: error.message || 'Internal server error',
+        const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+        return NextResponse.json({
+            error: errorMessage,
             success: false
         }, { status: 500 });
     }
