@@ -35,31 +35,43 @@ function initializeFirebaseAdmin() {
             parsedKey = parsedKey.slice(1, -1);
         }
 
-        // Normalize newlines: handle both \\n (double-escaped) and \n (single-escaped)
-        parsedKey = parsedKey
-            .replace(/\\\\n/g, '\n')   // .env.local double-escape → actual newline
-            .replace(/\\n/g, '\n');    // Vercel single-escape → actual newline
+        // Strategy: parse first WITHOUT pre-processing.
+        // Pre-processing newlines before JSON.parse is wrong — it breaks valid JSON
+        // that already contains proper \n escape sequences.
+        let serviceAccount: Record<string, unknown>;
+        try {
+            serviceAccount = JSON.parse(parsedKey);
+        } catch {
+            // Fallback: the value was pasted into Vercel with actual raw newline characters
+            // inside the JSON string (shows as "Bad control character" error).
+            // Escape all raw newlines so JSON.parse can succeed.
+            const escaped = parsedKey
+                .replace(/\r\n/g, '\\n')   // Windows CRLF
+                .replace(/\r/g, '\\n')     // Old Mac CR
+                .replace(/\n/g, '\\n');    // Unix LF
+            serviceAccount = JSON.parse(escaped);
+        }
 
-        const serviceAccount = JSON.parse(parsedKey);
-
-        // Belt-and-suspenders: ensure private_key has real newlines after JSON parse
+        // Fix private_key AFTER parsing:
+        // .env.local via dotenv → JSON.parse gives literal \n (backslash+n, 2 chars).
+        // Firebase Admin needs actual newline chars in the PEM. Convert them.
         if (serviceAccount.private_key && typeof serviceAccount.private_key === 'string') {
-            serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+            serviceAccount.private_key = (serviceAccount.private_key as string).replace(/\\n/g, '\n');
         }
 
         admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
-            projectId: serviceAccount.project_id || FIREBASE_PROJECT_ID,
+            credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
+            projectId: (serviceAccount.project_id as string) || FIREBASE_PROJECT_ID,
         });
 
         logger.info('Firebase Admin initialized successfully');
     } catch (e) {
-        logger.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY — check Vercel env var format. Error:', e);
+        logger.error('Failed to initialize Firebase Admin — check FIREBASE_SERVICE_ACCOUNT_KEY format:', e);
         // Last-resort fallback — at least prevents a full crash
         try {
             admin.initializeApp({ projectId: FIREBASE_PROJECT_ID });
         } catch {
-            // Already initialized
+            // Already initialized — ignore
         }
     }
 }
