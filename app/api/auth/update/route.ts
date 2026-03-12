@@ -5,7 +5,7 @@ import * as admin from 'firebase-admin';
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { uid, name, email, photoUrl, addresses, paymentMethods } = body;
+        const { uid, name, email, photoUrl, addresses, paymentMethods, fcmToken } = body;
 
         if (!uid) {
             return NextResponse.json({ success: false, error: 'User ID is required' }, { status: 400 });
@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
         if (photoUrl !== undefined) updateData.photoUrl = photoUrl;
         if (addresses !== undefined) updateData.addresses = addresses;
         if (paymentMethods !== undefined) updateData.paymentMethods = paymentMethods;
+        if (fcmToken !== undefined) updateData.fcmToken = fcmToken;
 
         updateData.updatedAt = new Date().toISOString();
 

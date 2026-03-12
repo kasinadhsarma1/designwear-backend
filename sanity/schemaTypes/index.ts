@@ -5,6 +5,7 @@ import customer from './customer'
 import inventoryMovement from './inventoryMovement'
 import supplier from './supplier'
 import systemLog from './systemLog'
+import notificationTemplate from './notificationTemplate'
 
 export const schema = {
     types: [
@@ -15,5 +16,6 @@ export const schema = {
         inventoryMovement,
         supplier,
         systemLog,
+        notificationTemplate,
     ]
 }
