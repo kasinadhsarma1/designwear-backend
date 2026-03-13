@@ -43,6 +43,8 @@ export async function POST(req: NextRequest) {
                 uid: userRecord.uid,
                 email: userRecord.email,
                 name: userRecord.displayName,
+                addresses: [],
+                paymentMethods: []
             }
         });
     } catch (error: unknown) {

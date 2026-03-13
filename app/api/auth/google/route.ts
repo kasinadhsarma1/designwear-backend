@@ -68,6 +68,8 @@ export async function POST(req: NextRequest) {
             await syncCustomerToSanity(uid, userDoc.data());
         }
 
+        const currentProfile = (await userDocRef.get()).data() || {};
+
         // Return session structured payload (identical format to regular login)
         return NextResponse.json({
             success: true,
@@ -77,7 +79,8 @@ export async function POST(req: NextRequest) {
                 expiresIn: data.expiresIn,
                 uid: data.localId,
                 email: email,
-                name: name
+                name: name,
+                ...currentProfile              // Include addresses, phone, etc.
             }
         });
     } catch (error: unknown) {

@@ -35,7 +35,9 @@ export async function POST() {
             data: {
                 token: customToken,           // Session token for headers
                 uid: guestUid,
-                isGuest: true
+                isGuest: true,
+                addresses: [],
+                paymentMethods: []
             }
         });
     } catch (error: unknown) {

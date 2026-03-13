@@ -1,4 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { db } from '@/lib/config/database';
 
 export async function POST(req: NextRequest) {
     try {
@@ -32,15 +33,21 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, error: data.error?.message || 'Invalid credentials' }, { status: 401 });
         }
 
+        // 2. Fetch the full customer profile from Firestore
+        const uid = data.localId;
+        const userDoc = await db.collection('customers').doc(uid).get();
+        const userData = userDoc.exists ? userDoc.data() : {};
+
         return NextResponse.json({
             success: true,
             data: {
                 token: data.idToken,           // Session token for headers
                 refreshToken: data.refreshToken,
                 expiresIn: data.expiresIn,
-                uid: data.localId,
+                uid: uid,
                 email: data.email,
-                name: data.displayName
+                name: data.displayName,
+                ...userData                    // Include addresses, phone, etc.
             }
         });
     } catch (error: unknown) {
