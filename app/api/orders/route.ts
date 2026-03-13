@@ -76,7 +76,6 @@ export async function GET(req: NextRequest) {
 
         const snapshot = await db.collection('orders')
             .where('firebaseUid', '==', firebaseUid)
-            .orderBy('createdAt', 'desc')
             .get();
 
         const orders: Record<string, unknown>[] = [];
@@ -85,8 +84,8 @@ export async function GET(req: NextRequest) {
         });
 
         return NextResponse.json({ success: true, data: orders }, { status: 200 });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error fetching orders:', error);
-        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: error.message || 'Internal server error' }, { status: 500 });
     }
 }
