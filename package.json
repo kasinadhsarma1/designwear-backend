@@ -23,6 +23,7 @@
     "react-dom": "19.2.3",
     "recharts": "^3.7.0",
     "sanity": "^5.13.0",
+    "stripe": "^20.4.1",
     "styled-components": "^6.3.11",
     "winston": "^3.19.0"
   },
