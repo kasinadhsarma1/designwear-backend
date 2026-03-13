@@ -60,6 +60,14 @@ export async function POST(req: NextRequest) {
             },
         });
 
+        // ✅ CRITICAL: Save razorpayOrderId back to Firestore so verify route can find the order
+        await orderRef.update({
+            razorpayOrderId: razorpayOrder.id,
+            updatedAt: new Date().toISOString(),
+        });
+
+        console.log(`Saved razorpayOrderId ${razorpayOrder.id} to Firestore order ${order_id}`);
+
         return NextResponse.json({
             success: true,
             razorpay_order_id: razorpayOrder.id,

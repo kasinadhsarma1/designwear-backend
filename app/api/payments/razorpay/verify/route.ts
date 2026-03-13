@@ -54,22 +54,22 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, error: 'Invalid payment signature' }, { status: 400 });
         }
 
-        // Signature is valid — find the Firestore order by its Razorpay order ID (stored in receipt)
+        // Signature is valid — find the Firestore order by its Razorpay order ID
         const ordersRef = db.collection('orders');
         const snapshot = await ordersRef
             .where('firebaseUid', '==', firebaseUid)
+            .where('razorpayOrderId', '==', razorpay_order_id)
+            .limit(1)
             .get();
 
-        // Find the order whose Razorpay receipt matches
+        // Find the order whose Razorpay order ID matches
         let targetOrderId: string | null = null;
-        snapshot.forEach((doc) => {
-            // The receipt was set to the Firestore order ID during order creation
-            // We stored the razorpay_order_id for lookup
-            const data = doc.data();
-            if (data.razorpayOrderId === razorpay_order_id) {
-                targetOrderId = doc.id;
-            }
-        });
+        if (!snapshot.empty) {
+            targetOrderId = snapshot.docs[0].id;
+            console.log(`Found matching Firestore order: ${targetOrderId} for razorpayOrderId: ${razorpay_order_id}`);
+        } else {
+            console.warn(`No Firestore order found for firebaseUid: ${firebaseUid} and razorpayOrderId: ${razorpay_order_id}`);
+        }
 
         // Update order status to PAID
         if (targetOrderId) {
