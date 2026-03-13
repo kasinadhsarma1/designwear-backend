@@ -11,7 +11,8 @@ async function getFirebaseUid(req: NextRequest): Promise<string | null> {
         const token = authHeader.split('Bearer ')[1];
         const decodedToken = await admin.auth().verifyIdToken(token);
         return decodedToken.uid;
-    } catch {
+    } catch (error) {
+        console.error('Firebase ID token verification failed:', error);
         return null;
     }
 }

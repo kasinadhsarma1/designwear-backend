@@ -11,6 +11,27 @@ export async function POST() {
 
         // 2. Generate a custom session token for the frontend to digest
         const customToken = await admin.auth().createCustomToken(guestUid);
+
+        // 3. Exchange custom token for ID token using REST API (ID token is verifiable by backend)
+        const apiKey = process.env.FIREBASE_API_KEY;
+        if (!apiKey) {
+            throw new Error("Missing FIREBASE_API_KEY in backend configuration");
+        }
+
+        const idTokenResponse = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                token: customToken,
+                returnSecureToken: true
+            })
+        });
+
+        const idTokenData = await idTokenResponse.json();
+        if (!idTokenResponse.ok) {
+            throw new Error(idTokenData.error?.message || 'Failed to exchange custom token for ID token');
+        }
+
         await db.collection('customers').doc(guestUid).set({
             firebaseUid: guestUid,
             name: 'Guest User',
@@ -19,7 +40,7 @@ export async function POST() {
             createdAt: new Date().toISOString()
         }, { merge: true });
 
-        // 3. Sync guest to Sanity Studio
+        // 4. Sync guest to Sanity Studio
         const guestData = {
             firebaseUid: guestUid,
             name: 'Guest User',
@@ -29,11 +50,11 @@ export async function POST() {
         };
         await syncCustomerToSanity(guestUid, guestData);
 
-        // 4. Return the token directly to the frontend
+        // 5. Return the ID token directly to the frontend
         return NextResponse.json({
             success: true,
             data: {
-                token: customToken,           // Session token for headers
+                token: idTokenData.idToken,           // Verifiable ID token
                 uid: guestUid,
                 isGuest: true,
                 addresses: [],
