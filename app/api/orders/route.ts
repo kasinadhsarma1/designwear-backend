@@ -24,40 +24,55 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, error: 'Unauthorized', details: authError }, { status: 401 });
         }
 
+        const body = await req.json();
         const {
-            orderNumber,
-            totalAmount,
+            orderNumber: providedOrderNumber,
+            totalAmount: providedTotalAmount,
             status = 'PENDING',
-            paymentMethod,
+            paymentMethod = 'STRIPE',
             shippingAddress,
             billingAddress,
             items
-        } = await req.json();
+        } = body;
 
-        if (!orderNumber || !totalAmount || !items || !Array.isArray(items)) {
-            return NextResponse.json({ success: false, error: 'Missing req fields' }, { status: 400 });
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            return NextResponse.json({ success: false, error: 'Items are required' }, { status: 400 });
+        }
+
+        if (!shippingAddress) {
+            return NextResponse.json({ success: false, error: 'Shipping address is required' }, { status: 400 });
+        }
+
+        // Generate order number if not provided (e.g., DW-123456789)
+        const orderNumber = providedOrderNumber || `DW-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+        // Calculate total amount if not provided (fallback)
+        // In a real production app, we should ALWAYS calculate this on the backend based on product prices in the DB
+        let totalAmount = providedTotalAmount;
+        if (totalAmount === undefined || totalAmount === null) {
+            totalAmount = items.reduce((sum: number, item: any) => sum + (item.price || 0) * (item.quantity || 1), 0);
         }
 
         const newOrderRef = db.collection('orders').doc();
 
-        await newOrderRef.set({
+        const orderData = {
             firebaseUid,
             orderNumber,
             totalAmount,
             status,
             paymentMethod,
             shippingAddress,
-            billingAddress,
+            billingAddress: billingAddress || shippingAddress,
             items,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
-        });
+        };
 
-        const newOrderSnap = await newOrderRef.get();
+        await newOrderRef.set(orderData);
 
         return NextResponse.json({
             success: true,
-            data: { id: newOrderRef.id, ...newOrderSnap.data() }
+            data: { id: newOrderRef.id, ...orderData }
         }, { status: 201 });
 
     } catch (error) {
