@@ -1,9 +1,12 @@
 import { NextResponse, NextRequest } from 'next/server';
-import Stripe from 'stripe';
+import Razorpay from 'razorpay';
 import { db } from '@/lib/config/database';
 import * as admin from 'firebase-admin';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID!,
+    key_secret: process.env.RAZORPAY_KEY_SECRET!,
+});
 
 // Extract uid from Bearer token
 async function getFirebaseUid(req: NextRequest): Promise<string | null> {
@@ -31,6 +34,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, error: 'order_id is required' }, { status: 400 });
         }
 
+        // Fetch the Firestore order to validate ownership and get amount
         const orderRef = db.collection('orders').doc(order_id);
         const orderSnap = await orderRef.get();
 
@@ -43,26 +47,29 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, error: 'Order not found' }, { status: 404 });
         }
 
-        // Create Stripe PaymentIntent or Checkout Session
-        // For mobile apps, a PaymentIntent is often easier to integrate with the Payment Sheet SDK
-        const paymentIntent = await stripe.paymentIntents.create({
-            amount: Math.round(order?.totalAmount * 100), // Stripe expects cents
-            currency: 'inr',
-            metadata: {
-                order_id: order_id,
-                firebaseUid: firebaseUid
+        // Razorpay expects amount in paise (1 INR = 100 paise)
+        const amountInPaise = Math.round(order?.totalAmount * 100);
+
+        const razorpayOrder = await razorpay.orders.create({
+            amount: amountInPaise,
+            currency: 'INR',
+            receipt: order_id,
+            notes: {
+                firestoreOrderId: order_id,
+                firebaseUid: firebaseUid,
             },
-            payment_method_types: ['card'],
         });
 
         return NextResponse.json({
             success: true,
-            client_secret: paymentIntent.client_secret,
-            payment_intent_id: paymentIntent.id
+            razorpay_order_id: razorpayOrder.id,
+            amount: razorpayOrder.amount,
+            currency: razorpayOrder.currency,
+            key_id: process.env.RAZORPAY_KEY_ID,
         });
 
     } catch (error: any) {
-        console.error('Stripe checkout error:', error);
+        console.error('Razorpay order creation error:', error);
         return NextResponse.json({ success: false, error: error.message || 'Internal server error' }, { status: 500 });
     }
 }

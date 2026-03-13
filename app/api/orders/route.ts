@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
 
         const shippingAddress = providedShippingAddress || snakeShippingAddress;
         const billingAddress = providedBillingAddress || snakeBillingAddress;
-        const paymentMethod = providedPaymentMethod || snakePaymentMethod || 'STRIPE';
+        const paymentMethod = providedPaymentMethod || snakePaymentMethod || 'RAZORPAY';
 
         if (!items || !Array.isArray(items) || items.length === 0) {
             return NextResponse.json({ success: false, error: 'Items are required' }, { status: 400 });
