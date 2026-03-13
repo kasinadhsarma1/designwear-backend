@@ -2,6 +2,15 @@ import { NextResponse, NextRequest } from 'next/server';
 import crypto from 'crypto';
 import { db } from '@/lib/config/database';
 import * as admin from 'firebase-admin';
+import { createClient } from '@sanity/client';
+
+const sanityClient = createClient({
+    projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
+    dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
+    apiVersion: process.env.NEXT_PUBLIC_SANITY_API_VERSION || '2024-03-31',
+    token: process.env.SANITY_API_TOKEN,
+    useCdn: false,
+});
 
 // Extract uid from Bearer token
 async function getFirebaseUid(req: NextRequest): Promise<string | null> {
@@ -72,6 +81,74 @@ export async function POST(req: NextRequest) {
                 updatedAt: new Date().toISOString(),
             });
             console.log(`Order ${targetOrderId} marked as PAID`);
+
+            // Sync to Sanity Studio
+            try {
+                if (!process.env.SANITY_API_TOKEN) {
+                    console.warn('SANITY_API_TOKEN is not set. Skipping Sanity sync.');
+                } else {
+                    const orderDoc = await db.collection('orders').doc(targetOrderId).get();
+                    if (orderDoc.exists) {
+                        const orderData = orderDoc.data()!;
+                        
+                        // Ensure Customer Exists in Sanity
+                        const customerId = `customer-${orderData.firebaseUid}`;
+                        const customerDoc = await db.collection('customers').doc(orderData.firebaseUid).get();
+                        const customerData = customerDoc.exists ? customerDoc.data() : null;
+
+                        const customerName = customerData?.name || orderData.shippingAddress?.name || 'Guest User';
+                        const customerEmail = customerData?.email || 'guest@example.com';
+                        const customerPhone = customerData?.phone || '';
+
+                        await sanityClient.createIfNotExists({
+                            _id: customerId,
+                            _type: 'customer',
+                            name: customerName,
+                            email: customerEmail,
+                            phone: customerPhone,
+                            totalOrders: (customerData?.totalOrders || 0) + 1,
+                            totalSpent: (customerData?.totalSpent || 0) + (orderData.totalAmount || 0),
+                        });
+
+                        // Map Items
+                        const sanityItems = (orderData.items || []).map((item: any) => ({
+                            _key: crypto.randomBytes(8).toString('hex'),
+                            product: item.productId ? { _type: 'reference', _ref: item.productId } : undefined,
+                            quantity: item.quantity || 1,
+                            size: item.size || '',
+                            color: item.color || '',
+                            price: item.price || 0
+                        }));
+
+                        // Create Order in Sanity
+                        const sanityOrder = {
+                            _type: 'order',
+                            orderNumber: orderData.orderNumber || targetOrderId,
+                            customer: {
+                                _type: 'reference',
+                                _ref: customerId
+                            },
+                            items: sanityItems,
+                            totalAmount: orderData.totalAmount || 0,
+                            status: 'processing',
+                            paymentStatus: 'paid',
+                            shippingAddress: {
+                                street: orderData.shippingAddress?.address || '',
+                                city: orderData.shippingAddress?.city || '',
+                                state: orderData.shippingAddress?.state || '',
+                                zipCode: orderData.shippingAddress?.pincode || '',
+                                country: 'India'
+                            },
+                            orderDate: orderData.createdAt || new Date().toISOString()
+                        };
+
+                        await sanityClient.create(sanityOrder);
+                        console.log(`Order ${targetOrderId} synced to Sanity Studio`);
+                    }
+                }
+            } catch (sanityError: any) {
+                console.error('Failed to sync order to Sanity:', sanityError.message || sanityError);
+            }
         }
 
         return NextResponse.json({ success: true });
