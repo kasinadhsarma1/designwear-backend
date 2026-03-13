@@ -2,27 +2,26 @@ import { NextResponse, NextRequest } from 'next/server';
 import { db } from '@/lib/config/database';
 import * as admin from 'firebase-admin';
 
-// Extract uid from Bearer token
-async function getFirebaseUid(req: NextRequest): Promise<string | null> {
+async function getFirebaseTokenInfo(req: NextRequest): Promise<{ uid: string | null; error?: any }> {
     const authHeader = req.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) return null;
+    if (!authHeader?.startsWith('Bearer ')) return { uid: null, error: 'Missing Bearer token' };
 
     try {
         const token = authHeader.split('Bearer ')[1];
         const decodedToken = await admin.auth().verifyIdToken(token);
-        return decodedToken.uid;
-    } catch (error) {
+        return { uid: decodedToken.uid };
+    } catch (error: any) {
         console.error('Firebase ID token verification failed:', error);
-        return null;
+        return { uid: null, error: error.message || 'Token verification failed' };
     }
 }
 
 // Create order
 export async function POST(req: NextRequest) {
     try {
-        const firebaseUid = await getFirebaseUid(req);
+        const { uid: firebaseUid, error: authError } = await getFirebaseTokenInfo(req);
         if (!firebaseUid) {
-            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized', details: authError }, { status: 401 });
         }
 
         const {
@@ -70,7 +69,7 @@ export async function POST(req: NextRequest) {
 // Get user orders
 export async function GET(req: NextRequest) {
     try {
-        const firebaseUid = await getFirebaseUid(req);
+        const { uid: firebaseUid } = await getFirebaseTokenInfo(req);
         if (!firebaseUid) {
             return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
