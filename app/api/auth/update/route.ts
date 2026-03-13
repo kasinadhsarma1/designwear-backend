@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { db } from '@/lib/config/database';
 import * as admin from 'firebase-admin';
+import { syncCustomerToSanity } from '@/lib/services/syncService';
 
 export async function POST(req: NextRequest) {
     try {
@@ -36,9 +37,15 @@ export async function POST(req: NextRequest) {
            } catch (authErr) {
              console.warn('Failed to update Firebase Auth user (could be a guest or non-existent auth record):', authErr);
            }
-        }
+         }
+ 
+         // 3. Sync updated data to Sanity Studio
+         const fullUserDoc = await db.collection('customers').doc(uid).get();
+         if (fullUserDoc.exists) {
+            await syncCustomerToSanity(uid, fullUserDoc.data());
+         }
 
-        return NextResponse.json({
+         return NextResponse.json({
             success: true,
             data: {
                 uid,

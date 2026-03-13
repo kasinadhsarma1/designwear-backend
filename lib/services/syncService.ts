@@ -97,6 +97,37 @@ export async function syncProductToDatabase(sanityDocumentId: string): Promise<S
     }
 }
 
+/**
+ * Syncs a customer profile from Firestore/Firebase to Sanity Studio.
+ * Uses the firebaseUid to identify and upsert the document in Sanity.
+ */
+export async function syncCustomerToSanity(uid: string, data: any): Promise<SyncResult> {
+    try {
+        const sanityDocId = `customer-${uid}`;
+        
+        const customerDoc = {
+            _type: 'customer',
+            _id: sanityDocId,
+            name: data.name || 'Unknown User',
+            email: data.email || '',
+            phone: data.phone || '',
+            addresses: data.addresses || [],
+            totalOrders: data.totalOrders || 0,
+            totalSpent: data.totalSpent || 0,
+            registeredAt: data.createdAt || new Date().toISOString(),
+        };
+
+        await client.createOrReplace(customerDoc);
+        
+        logger.info(`Synced customer ${uid} to Sanity with ID ${sanityDocId}`);
+        return { success: true, message: `Customer ${uid} synced to Sanity` };
+    } catch (error: unknown) {
+        logger.error(`Failed to sync customer ${uid} to Sanity:`, error);
+        const errorMessage = error instanceof Error ? error.message : `Failed to sync customer ${uid} to Sanity`;
+        return { success: false, message: errorMessage };
+    }
+}
+
 async function logOperation(
     operationType: string,
     documentType: string,

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/config/database';
 import * as admin from 'firebase-admin';
+import { syncCustomerToSanity } from '@/lib/services/syncService';
 
 export async function POST() {
     try {
@@ -18,7 +19,17 @@ export async function POST() {
             createdAt: new Date().toISOString()
         }, { merge: true });
 
-        // 3. Return the token directly to the frontend
+        // 3. Sync guest to Sanity Studio
+        const guestData = {
+            firebaseUid: guestUid,
+            name: 'Guest User',
+            email: '',
+            isGuest: true,
+            createdAt: new Date().toISOString()
+        };
+        await syncCustomerToSanity(guestUid, guestData);
+
+        // 4. Return the token directly to the frontend
         return NextResponse.json({
             success: true,
             data: {

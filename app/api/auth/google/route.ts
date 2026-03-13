@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { db } from '@/lib/config/database';
+import { syncCustomerToSanity } from '@/lib/services/syncService';
 
 export async function POST(req: NextRequest) {
     try {
@@ -59,6 +60,12 @@ export async function POST(req: NextRequest) {
             };
 
             await userDocRef.set(newCustomerData);
+            
+            // Sync new user to Sanity
+            await syncCustomerToSanity(uid, newCustomerData);
+        } else {
+            // Even if user exists, sync latest info back to Sanity
+            await syncCustomerToSanity(uid, userDoc.data());
         }
 
         // Return session structured payload (identical format to regular login)

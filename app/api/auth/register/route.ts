@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { db } from '@/lib/config/database';
 import * as admin from 'firebase-admin';
+import { syncCustomerToSanity } from '@/lib/services/syncService';
 
 export async function POST(req: NextRequest) {
     try {
@@ -32,6 +33,9 @@ export async function POST(req: NextRequest) {
         };
 
         await db.collection('customers').doc(userRecord.uid).set(newCustomerData);
+
+        // 3. Sync to Sanity Studio
+        await syncCustomerToSanity(userRecord.uid, newCustomerData);
 
         return NextResponse.json({
             success: true,
