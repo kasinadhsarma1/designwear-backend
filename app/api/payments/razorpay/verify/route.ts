@@ -111,14 +111,26 @@ export async function POST(req: NextRequest) {
                         });
 
                         // Map Items
-                        const sanityItems = (orderData.items || []).map((item: any) => ({
-                            _key: crypto.randomBytes(8).toString('hex'),
-                            product: item.productId ? { _type: 'reference', _ref: item.productId } : undefined,
-                            quantity: item.quantity || 1,
-                            size: item.size || '',
-                            color: item.color || '',
-                            price: item.price || 0
-                        }));
+                        const sanityItems = (orderData.items || []).map((item: any) => {
+                            const refId = item.productId || item.product_id;
+                            const sanityItem: any = {
+                                _key: crypto.randomBytes(8).toString('hex'),
+                                quantity: item.quantity || 1,
+                                size: item.size || '',
+                                color: item.color || '',
+                                price: item.price || 0
+                            };
+                            
+                            if (refId) {
+                                sanityItem.product = {
+                                    _type: 'reference',
+                                    _ref: refId,
+                                    _weak: true
+                                };
+                            }
+                            
+                            return sanityItem;
+                        });
 
                         // Create Order in Sanity
                         const sanityOrder = {
