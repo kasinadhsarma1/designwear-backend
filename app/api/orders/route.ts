@@ -27,13 +27,22 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const {
             orderNumber: providedOrderNumber,
+            order_number: snakeOrderNumber,
             totalAmount: providedTotalAmount,
+            total_amount: snakeTotalAmount,
             status = 'PENDING',
-            paymentMethod = 'STRIPE',
-            shippingAddress,
-            billingAddress,
+            paymentMethod: providedPaymentMethod,
+            payment_method: snakePaymentMethod,
+            shippingAddress: providedShippingAddress,
+            shipping_address: snakeShippingAddress,
+            billingAddress: providedBillingAddress,
+            billing_address: snakeBillingAddress,
             items
         } = body;
+
+        const shippingAddress = providedShippingAddress || snakeShippingAddress;
+        const billingAddress = providedBillingAddress || snakeBillingAddress;
+        const paymentMethod = providedPaymentMethod || snakePaymentMethod || 'STRIPE';
 
         if (!items || !Array.isArray(items) || items.length === 0) {
             return NextResponse.json({ success: false, error: 'Items are required' }, { status: 400 });
@@ -43,12 +52,11 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, error: 'Shipping address is required' }, { status: 400 });
         }
 
-        // Generate order number if not provided (e.g., DW-123456789)
-        const orderNumber = providedOrderNumber || `DW-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        // Generate order number if not provided
+        const orderNumber = providedOrderNumber || snakeOrderNumber || `DW-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-        // Calculate total amount if not provided (fallback)
-        // In a real production app, we should ALWAYS calculate this on the backend based on product prices in the DB
-        let totalAmount = providedTotalAmount;
+        // Calculate total amount if not provided
+        let totalAmount = providedTotalAmount ?? snakeTotalAmount;
         if (totalAmount === undefined || totalAmount === null) {
             totalAmount = items.reduce((sum: number, item: any) => sum + (item.price || 0) * (item.quantity || 1), 0);
         }
