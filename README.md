@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Designwear Backend
+
+Designwear Backend is the core API and CMS integration layer for the Designwear application. It leverages Next.js, Sanity CMS, Firebase Admin, and Razorpay for payments to deliver a scalable and robust e-commerce and content management platform.
+
+## Features
+
+- **Next.js App Router**: Optimized, server-rendered React applications.
+- **Sanity CMS**: Structured content management.
+- **Razorpay Integration**: Seamless payment processing.
+- **Firebase Admin**: Authentication and secure server-to-server operations.
+- **GenAI**: AI-powered features using `@google/genai`.
+- **Winston**: Advanced structured logging.
+
+## Prerequisites
+
+- Node.js >= 20
+- npm or yarn
 
 ## Getting Started
 
-First, run the development server:
+1. **Clone the repository** (if you haven't already):
+   ```bash
+   git clone https://github.com/kasinadhsarma1/designwear
+   cd designwear-backend
+   ```
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3. **Set up environment variables**:
+   Create a `.env.local` file with the required keys for Sanity, Firebase, and Razorpay.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+4. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
+   The server will start on `http://localhost:3000`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Scripts
 
-## Learn More
+- `npm run dev` - Starts the Next.js development server.
+- `npm run build` - Builds the application for production.
+- `npm run start` - Starts the production server.
+- `npm run lint` - Runs ESLint to check for code quality issues.
 
-To learn more about Next.js, take a look at the following resources:
+## Documentation
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+For more detailed information concerning the architecture, API design, and other specifications, please refer to the files in the `docs/` directory.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Contributing
 
-## Deploy on Vercel
+Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Security
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Please refer to [SECURITY.md](./SECURITY.md) for vulnerability reporting guidelines.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
