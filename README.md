@@ -1,62 +1,66 @@
-# Designwear Backend
+<div align="center">
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=timeGradient&height=250&section=header&text=Designwear%20Backend&fontSize=70&animation=fadeIn&fontAlignY=38&desc=Enterprise%20E-commerce%20API%20&%20CMS&descAlignY=55&descAlign=50"/>
 
-Designwear Backend is the core API and CMS integration layer for the Designwear application. It leverages Next.js, Sanity CMS, Firebase Admin, and Razorpay for payments to deliver a scalable and robust e-commerce and content management platform.
+  [![Live Demo](https://img.shields.io/badge/demo-live-brightgreen?style=for-the-badge&logo=nextdotjs)](https://designwear-backend.vishwamai.com/)
+</div>
 
-## Features
+# 👕 Designwear Backend
 
-- **Next.js App Router**: Optimized, server-rendered React applications.
-- **Sanity CMS**: Structured content management.
-- **Razorpay Integration**: Seamless payment processing.
-- **Firebase Admin**: Authentication and secure server-to-server operations.
-- **GenAI**: AI-powered features using `@google/genai`.
-- **Winston**: Advanced structured logging.
+**Designwear Backend** is the industrial-grade core API and CMS integration layer for the Designwear application. Orchestrating a complex ecosystem of **Next.js**, **Sanity CMS**, **Firebase Admin**, and **Razorpay**, it delivers a scalable, secure, and robust platform for modern e-commerce.
 
-## Prerequisites
+---
 
-- Node.js >= 20
-- npm or yarn
+## ✨ Enterprise Features
 
-## Getting Started
+- **Next.js App Router**: High-performance, server-rendered architecture.
+- **Sanity CMS**: Dynamic, structured content management for real-time updates.
+- **Razorpay Integration**: Fully secured end-to-end payment processing.
+- **Firebase Admin**: Enterprise-level authentication and server-side operations.
+- **AI-Powered**: Integrated Google GenAI for intelligent content and user insights.
+- **Advanced Logging**: Structured audit trails and logging with Winston.
 
-1. **Clone the repository** (if you haven't already):
+---
+
+## 🚀 Live API / Demo
+
+Access the live backend services:
+👉 **[Launch Designwear Backend](https://designwear-backend.vishwamai.com/)**
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework**: Next.js 14+ (App Router)
+- **CMS**: Sanity.io
+- **Database/Auth**: Firebase Admin SDK
+- **Payments**: Razorpay
+- **AI**: @google/genai
+- **Logging**: Winston
+- **Language**: TypeScript (Strict)
+
+---
+
+## 💻 Getting Started
+
+1. Clone the repository:
    ```bash
-   git clone https://github.com/kasinadhsarma1/designwear
-   cd designwear-backend
+   git clone https://github.com/kasinadhsarma1/designwear-backend.git
    ```
-
-2. **Install dependencies**:
+2. Install dependencies:
    ```bash
    npm install
    ```
-
-3. **Set up environment variables**:
-   Create a `.env.local` file with the required keys for Sanity, Firebase, and Razorpay.
-
-4. **Run the development server**:
+3. Set up environment variables in `.env.local`:
+   - `SANITY_PROJECT_ID`
+   - `FIREBASE_SERVICE_ACCOUNT`
+   - `RAZORPAY_KEY_ID`
+4. Run the development server:
    ```bash
    npm run dev
    ```
-   The server will start on `http://localhost:3000`.
 
-## Scripts
+---
 
-- `npm run dev` - Starts the Next.js development server.
-- `npm run build` - Builds the application for production.
-- `npm run start` - Starts the production server.
-- `npm run lint` - Runs ESLint to check for code quality issues.
-
-## Documentation
-
-For more detailed information concerning the architecture, API design, and other specifications, please refer to the files in the `docs/` directory.
-
-## Contributing
-
-Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
-
-## Security
-
-Please refer to [SECURITY.md](./SECURITY.md) for vulnerability reporting guidelines.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+<div align="center">
+  <i>"Architecting the backbone of modern digital commerce."</i>
+</div>
