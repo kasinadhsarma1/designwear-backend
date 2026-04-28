@@ -2,181 +2,242 @@ import { defineType, defineField } from 'sanity'
 import { PriceWithTaxInput } from '../components/PriceWithTaxInput'
 
 export default defineType({
-    name: 'product',
-    title: 'Product',
-    type: 'document',
-    fields: [
-        defineField({
-            name: 'name',
-            title: 'Product Name',
-            type: 'string',
-            validation: (Rule) => Rule.required(),
-        }),
-        defineField({
-            name: 'slug',
-            title: 'Slug',
-            type: 'slug',
-            options: {
-                source: 'name',
-                maxLength: 96,
-            },
-            validation: (Rule) => Rule.required(),
-        }),
-        defineField({
-            name: 'description',
-            title: 'Description',
-            type: 'text',
-            rows: 4,
-        }),
-        defineField({
-            name: 'category',
-            title: 'Category',
-            type: 'reference',
-            to: [{ type: 'category' }],
-            validation: (Rule) => Rule.required(),
-        }),
-        defineField({
-            name: 'price',
-            title: 'Base Price',
-            type: 'number',
-            validation: (Rule) => Rule.required().min(0),
-        }),
-        defineField({
-            name: 'taxRate',
-            title: 'Tax Rate (%)',
-            description: 'Set custom tax rate (default is 18%).',
-            type: 'number',
-            validation: (Rule) => Rule.min(0).max(100),
-            initialValue: 18,
-        }),
-        defineField({
-            name: 'priceWithTax',
-            title: 'Final Price (Computed)',
-            type: 'number',
-            components: {
-                input: PriceWithTaxInput,
-            },
-        }),
-        defineField({
-            name: 'compareAtPrice',
-            title: 'Compare at Price',
-            type: 'number',
-            validation: (Rule) => Rule.min(0),
-        }),
-        defineField({
-            name: 'stock',
-            title: 'Stock Quantity',
-            type: 'number',
-            validation: (Rule) => Rule.required().min(0),
-            initialValue: 0,
-        }),
-        defineField({
-            name: 'lowStockThreshold',
-            title: 'Low Stock Threshold',
-            type: 'number',
-            validation: (Rule) => Rule.min(0),
-            initialValue: 10,
-        }),
-        defineField({
-            name: 'sku',
-            title: 'SKU',
-            type: 'string',
-            validation: (Rule) => Rule.required(),
-        }),
-        defineField({
-            name: 'images',
-            title: 'Product Images',
-            type: 'array',
-            of: [
-                {
-                    type: 'image',
-                    options: {
-                        hotspot: true,
-                    },
-                    fields: [
-                        {
-                            name: 'alt',
-                            type: 'string',
-                            title: 'Alternative text',
-                        },
-                    ],
-                },
-            ],
-        }),
-        defineField({
-            name: 'sizes',
-            title: 'Available Sizes',
-            type: 'array',
-            of: [{ type: 'string' }],
-            options: {
-                list: [
-                    { title: 'XS', value: 'xs' },
-                    { title: 'S', value: 's' },
-                    { title: 'M', value: 'm' },
-                    { title: 'L', value: 'l' },
-                    { title: 'XL', value: 'xl' },
-                    { title: 'XXL', value: 'xxl' },
-                ],
-            },
-        }),
-        defineField({
-            name: 'colors',
-            title: 'Available Colors',
-            type: 'array',
-            of: [{ type: 'string' }],
-        }),
-        defineField({
-            name: 'status',
-            title: 'Status',
-            type: 'string',
-            options: {
-                list: [
-                    { title: 'Active', value: 'active' },
-                    { title: 'Draft', value: 'draft' },
-                    { title: 'Archived', value: 'archived' },
-                ],
-            },
-            initialValue: 'draft',
-            validation: (Rule) => Rule.required(),
-        }),
-        defineField({
-            name: 'featured',
-            title: 'Featured Product',
-            type: 'boolean',
-            initialValue: false,
-        }),
-        defineField({
-            name: 'supplier',
-            title: 'Supplier',
-            type: 'reference',
-            to: [{ type: 'supplier' }],
-        }),
-        defineField({
-            name: 'dbSyncStatus',
-            title: 'Database Sync Status',
-            type: 'object',
-            fields: [
-                { name: 'synced', type: 'boolean', title: 'Synced', initialValue: false },
-                { name: 'lastSyncedAt', type: 'datetime', title: 'Last Synced At' },
-                { name: 'syncError', type: 'text', title: 'Sync Error' },
-            ],
-            readOnly: true,
-        }),
-    ],
-    preview: {
-        select: {
-            title: 'name',
-            subtitle: 'sku',
-            media: 'images.0',
-            stock: 'stock',
-            status: 'status',
+  name: 'product',
+  title: 'Product',
+  type: 'document',
+  groups: [
+    { name: 'basic',   title: 'Basic Info',      default: true },
+    { name: 'pricing', title: 'Pricing & Stock' },
+    { name: 'media',   title: 'Media & Variants' },
+    { name: 'studio',  title: 'Design Studio' },
+    { name: 'meta',    title: 'Metadata' },
+  ],
+  fields: [
+    defineField({
+      name: 'name',
+      title: 'Product Name',
+      type: 'string',
+      group: 'basic',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'slug',
+      title: 'Slug',
+      type: 'slug',
+      group: 'basic',
+      options: { source: 'name', maxLength: 96 },
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'description',
+      title: 'Description',
+      type: 'text',
+      group: 'basic',
+      rows: 4,
+    }),
+    defineField({
+      name: 'category',
+      title: 'Category',
+      type: 'reference',
+      group: 'basic',
+      to: [{ type: 'category' }],
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'tags',
+      title: 'Tags',
+      type: 'array',
+      group: 'basic',
+      of: [{ type: 'string' }],
+      options: { layout: 'tags' },
+    }),
+    defineField({
+      name: 'sku',
+      title: 'SKU',
+      type: 'string',
+      group: 'basic',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'price',
+      title: 'Base Price',
+      type: 'number',
+      group: 'pricing',
+      validation: (Rule) => Rule.required().min(0),
+    }),
+    defineField({
+      name: 'taxRate',
+      title: 'Tax Rate (%)',
+      description: 'Set custom tax rate (default is 18%).',
+      type: 'number',
+      group: 'pricing',
+      validation: (Rule) => Rule.min(0).max(100),
+      initialValue: 18,
+    }),
+    defineField({
+      name: 'priceWithTax',
+      title: 'Final Price (Computed)',
+      type: 'number',
+      group: 'pricing',
+      components: { input: PriceWithTaxInput },
+    }),
+    defineField({
+      name: 'compareAtPrice',
+      title: 'Compare at Price',
+      type: 'number',
+      group: 'pricing',
+      validation: (Rule) => Rule.min(0),
+    }),
+    defineField({
+      name: 'stock',
+      title: 'Stock Quantity',
+      type: 'number',
+      group: 'pricing',
+      validation: (Rule) => Rule.required().min(0),
+      initialValue: 0,
+    }),
+    defineField({
+      name: 'lowStockThreshold',
+      title: 'Low Stock Threshold',
+      type: 'number',
+      group: 'pricing',
+      validation: (Rule) => Rule.min(0),
+      initialValue: 10,
+    }),
+    defineField({
+      name: 'images',
+      title: 'Product Images',
+      type: 'array',
+      group: 'media',
+      of: [
+        {
+          type: 'image',
+          options: { hotspot: true },
+          fields: [{ name: 'alt', type: 'string', title: 'Alternative text' }],
         },
-        prepare({ title, subtitle, media, stock, status }) {
-            return {
-                title,
-                subtitle: `${subtitle} | Stock: ${stock} | ${status}`,
-                media,
-            }
-        },
+      ],
+    }),
+    defineField({
+      name: 'sizes',
+      title: 'Available Sizes',
+      type: 'array',
+      group: 'media',
+      of: [{ type: 'string' }],
+      options: {
+        list: [
+          { title: 'XS', value: 'xs' },
+          { title: 'S',  value: 's'  },
+          { title: 'M',  value: 'm'  },
+          { title: 'L',  value: 'l'  },
+          { title: 'XL', value: 'xl' },
+          { title: 'XXL',value: 'xxl'},
+        ],
+      },
+    }),
+    defineField({
+      name: 'colors',
+      title: 'Available Colors',
+      type: 'array',
+      group: 'media',
+      of: [{ type: 'string' }],
+    }),
+
+    // ── Design Studio ────────────────────────────────────────────────────────
+    defineField({
+      name: 'customizable',
+      title: 'Customizable in Design Studio',
+      type: 'boolean',
+      group: 'studio',
+      description: 'Allow customers to personalise this product in the DesignWear Studio app.',
+      initialValue: false,
+    }),
+    defineField({
+      name: 'garmentType',
+      title: 'Garment Type',
+      type: 'string',
+      group: 'studio',
+      options: {
+        list: [
+          { title: 'T-Shirt',    value: 'tshirt'     },
+          { title: 'Hoodie',     value: 'hoodie'     },
+          { title: 'Sweatshirt', value: 'sweatshirt' },
+          { title: 'Polo',       value: 'polo'       },
+          { title: 'Cap',        value: 'cap'        },
+          { title: 'Tote Bag',   value: 'totebag'    },
+          { title: 'Other',      value: 'other'      },
+        ],
+        layout: 'radio',
+      },
+      hidden: ({ document }) => !document?.customizable,
+    }),
+    defineField({
+      name: 'designTemplateIds',
+      title: 'Default Design Templates',
+      description: 'Template IDs pre-loaded when a customer opens this product in Design Studio.',
+      type: 'array',
+      group: 'studio',
+      of: [{ type: 'string' }],
+      hidden: ({ document }) => !document?.customizable,
+    }),
+
+    // ── Metadata ─────────────────────────────────────────────────────────────
+    defineField({
+      name: 'status',
+      title: 'Status',
+      type: 'string',
+      group: 'meta',
+      options: {
+        list: [
+          { title: 'Active',   value: 'active'   },
+          { title: 'Draft',    value: 'draft'    },
+          { title: 'Archived', value: 'archived' },
+        ],
+      },
+      initialValue: 'draft',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'featured',
+      title: 'Featured Product',
+      type: 'boolean',
+      group: 'meta',
+      initialValue: false,
+    }),
+    defineField({
+      name: 'supplier',
+      title: 'Supplier',
+      type: 'reference',
+      group: 'meta',
+      to: [{ type: 'supplier' }],
+    }),
+    defineField({
+      name: 'dbSyncStatus',
+      title: 'Database Sync Status',
+      type: 'object',
+      group: 'meta',
+      fields: [
+        { name: 'synced',       type: 'boolean',  title: 'Synced',         initialValue: false },
+        { name: 'lastSyncedAt', type: 'datetime', title: 'Last Synced At' },
+        { name: 'syncError',    type: 'text',     title: 'Sync Error'     },
+      ],
+      readOnly: true,
+    }),
+  ],
+  preview: {
+    select: {
+      title:        'name',
+      subtitle:     'sku',
+      media:        'images.0',
+      stock:        'stock',
+      status:       'status',
+      customizable: 'customizable',
     },
+    prepare({ title, subtitle, media, stock, status, customizable }) {
+      return {
+        title,
+        subtitle: `${subtitle ?? '–'} | Stock: ${stock ?? 0} | ${status}${customizable ? ' (Custom)' : ''}`,
+        media,
+      }
+    },
+  },
 })

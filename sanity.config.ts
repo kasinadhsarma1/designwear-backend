@@ -1,24 +1,26 @@
 'use client'
 
 /**
- * This configuration is used to for the Sanity Studio that’s mounted on the `/app/designwear-studio/[[...tool]]/page.tsx` route
+ * Sanity Studio config — DesignWear content & commerce hub.
+ * Mounted at /designwear-studio
  */
 
 import { visionTool } from '@sanity/vision'
 import { defineConfig } from 'sanity'
 import { structureTool } from 'sanity/structure'
 
-// Go to https://www.sanity.io/docs/api-versioning to learn how API versioning works
 import { apiVersion, dataset, projectId } from './sanity/env'
 import { schema } from './sanity/schemaTypes'
 import { structure } from './sanity/structure'
 import { PublishAndSync } from './sanity/actions/PublishAndSync'
+import { StudioLogo } from './sanity/components/StudioLogo'
 
 export default defineConfig({
   basePath: '/designwear-studio',
   projectId,
   dataset,
-  // Add and edit the content schema in the './sanity/schemaTypes' folder
+  title: 'DesignWear Studio',
+  icon: StudioLogo,
   schema,
   document: {
     actions: (prev, context) => {
@@ -31,12 +33,10 @@ export default defineConfig({
         })
       }
       return prev
-    }
+    },
   },
   plugins: [
     structureTool({ structure }),
-    // Vision is for querying with GROQ from inside the Studio
-    // https://www.sanity.io/docs/the-vision-plugin
     visionTool({ defaultApiVersion: apiVersion }),
   ],
 })
