@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Box, Card, Text, Badge, Stack, Table, TableRow, TableCell, TableHead, TableBody } from '@sanity/ui'
+import { Box, Card, Text, Badge, Stack, Flex } from '@sanity/ui'
 
 interface Operation {
   id: string
@@ -8,6 +8,8 @@ interface Operation {
   timestamp: string
   status: 'success' | 'failed'
 }
+
+const COL = { type: '20%', document: '40%', time: '25%', status: '15%' }
 
 export default function recentOperationsWidget() {
   return {
@@ -49,50 +51,49 @@ function RecentOperationsComponent() {
           </Text>
         ) : (
           <Box style={{ maxHeight: '280px', overflowY: 'auto' }}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>
-                    <Text size={1} weight="semibold">Type</Text>
-                  </TableCell>
-                  <TableCell>
-                    <Text size={1} weight="semibold">Document</Text>
-                  </TableCell>
-                  <TableCell>
-                    <Text size={1} weight="semibold">Time</Text>
-                  </TableCell>
-                  <TableCell>
-                    <Text size={1} weight="semibold">Status</Text>
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {operations.map((op) => (
-                  <TableRow key={op.id}>
-                    <TableCell>
-                      <Text size={1}>{op.type}</Text>
-                    </TableCell>
-                    <TableCell>
-                      <Text size={1}>{op.document}</Text>
-                    </TableCell>
-                    <TableCell>
-                      <Text size={1} muted>
-                        {new Date(op.timestamp).toLocaleTimeString()}
-                      </Text>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        tone={op.status === 'success' ? 'positive' : 'critical'}
-                        padding={2}
-                        fontSize={0}
-                      >
-                        {op.status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <Stack space={1}>
+              {/* Header row */}
+              <Flex padding={2} style={{ borderBottom: '1px solid var(--card-border-color)' }}>
+                <Box style={{ width: COL.type }}>
+                  <Text size={0} weight="semibold" muted>TYPE</Text>
+                </Box>
+                <Box style={{ width: COL.document }}>
+                  <Text size={0} weight="semibold" muted>DOCUMENT</Text>
+                </Box>
+                <Box style={{ width: COL.time }}>
+                  <Text size={0} weight="semibold" muted>TIME</Text>
+                </Box>
+                <Box style={{ width: COL.status }}>
+                  <Text size={0} weight="semibold" muted>STATUS</Text>
+                </Box>
+              </Flex>
+
+              {/* Data rows */}
+              {operations.map((op) => (
+                <Flex key={op.id} padding={2} align="center">
+                  <Box style={{ width: COL.type }}>
+                    <Text size={1}>{op.type}</Text>
+                  </Box>
+                  <Box style={{ width: COL.document }}>
+                    <Text size={1}>{op.document}</Text>
+                  </Box>
+                  <Box style={{ width: COL.time }}>
+                    <Text size={1} muted>
+                      {new Date(op.timestamp).toLocaleTimeString()}
+                    </Text>
+                  </Box>
+                  <Box style={{ width: COL.status }}>
+                    <Badge
+                      tone={op.status === 'success' ? 'positive' : 'critical'}
+                      padding={2}
+                      fontSize={0}
+                    >
+                      {op.status}
+                    </Badge>
+                  </Box>
+                </Flex>
+              ))}
+            </Stack>
           </Box>
         )}
       </Stack>
