@@ -235,7 +235,7 @@ export default defineType({
     prepare({ title, subtitle, media, stock, status, customizable }) {
       return {
         title,
-        subtitle: `${subtitle ?? '–'} | Stock: ${stock ?? 0} | ${status}${customizable ? ' ✦ Custom' : ''}`,
+        subtitle: `${subtitle ?? '–'} | Stock: ${stock ?? 0} | ${status}${customizable ? ' (Custom)' : ''}`,
         media,
       }
     },
